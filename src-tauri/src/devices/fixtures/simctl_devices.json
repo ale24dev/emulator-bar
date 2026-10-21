@@ -1,0 +1,44 @@
+{
+  "devices" : {
+    "com.apple.CoreSimulator.SimRuntime.iOS-26-4" : [
+      {
+        "udid" : "11111111-0000-0000-0000-000000000000",
+        "isAvailable" : false,
+        "availabilityError" : "runtime profile not found",
+        "deviceTypeIdentifier" : "com.apple.CoreSimulator.SimDeviceType.iPhone-17",
+        "state" : "Shutdown",
+        "name" : "iPhone 17 (stale)"
+      }
+    ],
+    "com.apple.CoreSimulator.SimRuntime.iOS-27-0" : [
+      {
+        "udid" : "7A0A3D0B-4377-411C-A659-5A3EC084408E",
+        "isAvailable" : true,
+        "deviceTypeIdentifier" : "com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro",
+        "state" : "Shutdown",
+        "name" : "iPhone 18 Pro"
+      },
+      {
+        "udid" : "B74A192C-852D-496E-BC63-AECB12F13402",
+        "isAvailable" : true,
+        "deviceTypeIdentifier" : "com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro-Max",
+        "state" : "Booted",
+        "name" : "iPhone 18 Pro Max"
+      },
+      {
+        "udid" : "3CD54D47-79A6-47DA-BA63-711384DD14CE",
+        "isAvailable" : true,
+        "state" : "Shutting Down",
+        "name" : "iPhone 17e"
+      }
+    ],
+    "com.apple.CoreSimulator.SimRuntime.watchOS-12-0" : [
+      {
+        "udid" : "22222222-0000-0000-0000-000000000000",
+        "isAvailable" : true,
+        "state" : "Booting",
+        "name" : "Apple Watch Ultra"
+      }
+    ]
+  }
+}

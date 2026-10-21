@@ -1,0 +1,3 @@
+INFO    | Storing crashdata in: /tmp/foo
+Pixel_10_Pro_XL
+Pixel_10a

@@ -1,11 +1,17 @@
 //! Emulator Bar: a macOS menu-bar controller for Android emulators and iOS simulators.
 
+mod commands;
+mod devices;
 mod tray;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_positioner::init())
+        .manage(commands::Providers::new(
+            devices::tools::ToolPaths::from_env(),
+        ))
+        .invoke_handler(tauri::generate_handler![commands::list_devices])
         .setup(|app| {
             // Menu-bar only: no Dock icon, no app switcher entry.
             #[cfg(target_os = "macos")]
