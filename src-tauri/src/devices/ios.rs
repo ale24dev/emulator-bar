@@ -1,8 +1,9 @@
 //! iOS simulators via `xcrun simctl`.
 
-use super::{Device, DeviceState, EmulatorProvider, Platform, process, tools::ToolPaths};
+use super::{Device, DeviceState, EmulatorProvider, Platform, actions, process, tools::ToolPaths};
 use serde::Deserialize;
 use std::collections::HashMap;
+use std::path::Path;
 
 #[derive(Deserialize)]
 struct SimctlList {
@@ -93,12 +94,68 @@ impl IosProvider {
     }
 }
 
+impl IosProvider {
+    async fn state_of(&self, udid: &str) -> Result<DeviceState, String> {
+        self.list()
+            .await?
+            .into_iter()
+            .find(|d| d.id == udid)
+            .map(|d| d.state)
+            .ok_or_else(|| format!("Simulator {udid} not found"))
+    }
+}
+
 impl EmulatorProvider for IosProvider {
     async fn list(&self) -> Result<Vec<Device>, String> {
         let json = self
             .simctl(&["list", "devices", "available", "--json"])
             .await?;
         parse_simctl_devices(&json)
+    }
+
+    async fn boot(&self, udid: &str) -> Result<(), String> {
+        match self.simctl(&["boot", udid]).await {
+            Ok(_) => {}
+            // Booting an already booted simulator is not an error for the user.
+            Err(e) if e.contains("current state: Booted") => {}
+            Err(e) => return Err(e),
+        }
+        // `simctl boot` is headless; bring up the Simulator window.
+        process::run(Path::new("/usr/bin/open"), &["-a", "Simulator"])
+            .await
+            .map(drop)
+    }
+
+    async fn shutdown(&self, udid: &str) -> Result<(), String> {
+        match self.simctl(&["shutdown", udid]).await {
+            Err(e) if !e.contains("current state: Shutdown") => Err(e),
+            _ => Ok(()),
+        }
+    }
+
+    async fn open_url(&self, udid: &str, url: &str) -> Result<(), String> {
+        let url = actions::validate_url(url)?;
+        self.simctl(&["openurl", udid, url]).await.map(drop)
+    }
+
+    async fn install(&self, udid: &str, path: &str) -> Result<(), String> {
+        let app = actions::validate_package(path, "app")?;
+        let app = app.to_string_lossy();
+        self.simctl(&["install", udid, &app]).await.map(drop)
+    }
+
+    async fn screenshot(&self, udid: &str, dest: &Path) -> Result<(), String> {
+        let dest = dest.to_string_lossy();
+        self.simctl(&["io", udid, "screenshot", &dest])
+            .await
+            .map(drop)
+    }
+
+    async fn erase(&self, udid: &str) -> Result<(), String> {
+        if self.state_of(udid).await? != DeviceState::Shutdown {
+            return Err("Shut down the simulator before erasing it".into());
+        }
+        self.simctl(&["erase", udid]).await.map(drop)
     }
 }
 

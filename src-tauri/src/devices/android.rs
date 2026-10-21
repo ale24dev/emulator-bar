@@ -1,7 +1,8 @@
 //! Android emulators via `emulator` and `adb`.
 
-use super::{Device, DeviceState, EmulatorProvider, Platform, process, tools::ToolPaths};
+use super::{Device, DeviceState, EmulatorProvider, Platform, actions, process, tools::ToolPaths};
 use std::collections::HashMap;
+use std::path::Path;
 
 /// An adb-visible emulator instance (`emulator-5554  device`).
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -151,6 +152,18 @@ impl AndroidProvider {
     }
 }
 
+impl AndroidProvider {
+    /// The adb serial of a running AVD, or a user-facing error.
+    async fn serial_of(&self, avd: &str) -> Result<String, String> {
+        let running = self.running_by_avd().await?;
+        match running.get(avd) {
+            Some(emu) if emu.state == DeviceState::Booted => Ok(emu.serial.clone()),
+            Some(_) => Err(format!("{avd} is still starting up")),
+            None => Err(format!("{avd} is not running")),
+        }
+    }
+}
+
 impl EmulatorProvider for AndroidProvider {
     async fn list(&self) -> Result<Vec<Device>, String> {
         let avds = parse_avd_list(&process::run(&self.tools.emulator, &["-list-avds"]).await?);
@@ -161,6 +174,86 @@ impl EmulatorProvider for AndroidProvider {
             .map(|a| (a.clone(), self.read_config(a)))
             .collect();
         Ok(merge_devices(&avds, &running, &configs))
+    }
+
+    async fn boot(&self, avd: &str) -> Result<(), String> {
+        if self
+            .running_by_avd()
+            .await
+            .unwrap_or_default()
+            .contains_key(avd)
+        {
+            return Ok(());
+        }
+        process::spawn_detached(&self.tools.emulator, &["-avd", avd])
+    }
+
+    async fn shutdown(&self, avd: &str) -> Result<(), String> {
+        let serial = self.serial_of(avd).await?;
+        self.adb(&["-s", &serial, "emu", "kill"]).await.map(drop)
+    }
+
+    async fn open_url(&self, avd: &str, url: &str) -> Result<(), String> {
+        let url = actions::validate_url(url)?;
+        let serial = self.serial_of(avd).await?;
+        let quoted = actions::shell_quote(url);
+        let args = [
+            "-s",
+            &serial,
+            "shell",
+            "am",
+            "start",
+            "-a",
+            "android.intent.action.VIEW",
+            "-d",
+            &quoted,
+        ];
+        let out = self.adb(&args).await?;
+        // `am start` reports failures on stdout while still exiting 0.
+        match out.lines().find(|l| l.starts_with("Error")) {
+            Some(err) => Err(err.trim().to_string()),
+            None => Ok(()),
+        }
+    }
+
+    async fn install(&self, avd: &str, path: &str) -> Result<(), String> {
+        let apk = actions::validate_package(path, "apk")?;
+        let serial = self.serial_of(avd).await?;
+        let apk = apk.to_string_lossy();
+        let out = self.adb(&["-s", &serial, "install", "-r", &apk]).await?;
+        if out.contains("Success") {
+            Ok(())
+        } else {
+            Err(format!("adb install: {}", out.trim()))
+        }
+    }
+
+    async fn screenshot(&self, avd: &str, dest: &Path) -> Result<(), String> {
+        let serial = self.serial_of(avd).await?;
+        let png = process::run_bytes(
+            &self.tools.adb,
+            &["-s", &serial, "exec-out", "screencap", "-p"],
+        )
+        .await?;
+        if png.is_empty() {
+            return Err("Screenshot came back empty".into());
+        }
+        tokio::fs::write(dest, png)
+            .await
+            .map_err(|e| format!("Could not save {}: {e}", dest.display()))
+    }
+
+    async fn erase(&self, avd: &str) -> Result<(), String> {
+        if self
+            .running_by_avd()
+            .await
+            .unwrap_or_default()
+            .contains_key(avd)
+        {
+            return Err("Shut down the emulator before wiping it".into());
+        }
+        // The emulator wipes user data on this cold boot.
+        process::spawn_detached(&self.tools.emulator, &["-avd", avd, "-wipe-data"])
     }
 }
 

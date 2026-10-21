@@ -1,13 +1,15 @@
 //! Device model and the provider abstraction shared by Android and iOS.
 
+pub mod actions;
 pub mod android;
 pub mod ios;
 pub mod process;
 pub mod tools;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+use std::path::Path;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Platform {
     Android,
@@ -42,4 +44,13 @@ pub struct Device {
 #[allow(async_fn_in_trait)]
 pub trait EmulatorProvider {
     async fn list(&self) -> Result<Vec<Device>, String>;
+    async fn boot(&self, id: &str) -> Result<(), String>;
+    async fn shutdown(&self, id: &str) -> Result<(), String>;
+    async fn open_url(&self, id: &str, url: &str) -> Result<(), String>;
+    /// Installs an `.apk` (Android) or `.app` bundle (iOS).
+    async fn install(&self, id: &str, path: &str) -> Result<(), String>;
+    /// Saves a PNG screenshot at `dest`.
+    async fn screenshot(&self, id: &str, dest: &Path) -> Result<(), String>;
+    /// Wipes user data. The device must be shut down.
+    async fn erase(&self, id: &str) -> Result<(), String>;
 }

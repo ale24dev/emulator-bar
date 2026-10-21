@@ -11,7 +11,17 @@ pub fn run() {
         .manage(commands::Providers::new(
             devices::tools::ToolPaths::from_env(),
         ))
-        .invoke_handler(tauri::generate_handler![commands::list_devices])
+        .invoke_handler(tauri::generate_handler![
+            commands::list_devices,
+            commands::boot_device,
+            commands::shutdown_device,
+            commands::open_url,
+            commands::install_app,
+            commands::take_screenshot,
+            commands::erase_device,
+            commands::shutdown_all,
+            commands::open_url_all_booted,
+        ])
         .setup(|app| {
             // Menu-bar only: no Dock icon, no app switcher entry.
             #[cfg(target_os = "macos")]
