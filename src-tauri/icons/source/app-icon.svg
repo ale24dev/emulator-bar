@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <clipPath id="c"><rect x="342" y="212" width="340" height="600" rx="78"/></clipPath>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbfbfd"/><stop offset="1" stop-color="#e3e5ec"/></linearGradient>
+  </defs>
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="url(#g)"/>
+  <g clip-path="url(#c)"><rect x="342" y="212" width="170" height="600" fill="#2fc779"/><rect x="512" y="212" width="170" height="600" fill="#1f2430"/></g>
+  <rect x="342" y="212" width="340" height="600" rx="78" fill="none" stroke="#1f2430" stroke-width="10"/>
+  <rect x="472" y="248" width="80" height="22" rx="11" fill="#0c0e14"/>
+</svg>

@@ -31,6 +31,7 @@ ask-on-risk. Forecast: ~1200 authored lines (exceeds 400 → chain strategy ques
 - [x] T4 Frontend: device list grouped by platform, status badges, per-device actions, deep link input, file picker for install, bulk actions, refresh/polling. Route: delegated.
 - [x] T5 Verification: cargo test, cargo clippy, pnpm build, tauri build (debug) smoke. Route: delegated.
 - [x] T6 Launch at login: `tauri-plugin-autostart` (LaunchAgent) with a "Launch at login" check item in the tray menu above Quit; default off; README note. Route: delegated (writer).
+- [x] T7 App + tray icons: replace default Tauri icons with the "Split" design (phone halved, Android green / Apple graphite); SVG sources in `src-tauri/icons/source/`; tray stays a template image. Route: delegated (writer).
 
 ## Acceptance criteria
 - Tray icon appears; clicking toggles popover; no Dock icon.
@@ -54,6 +55,7 @@ Branch `feat/emulator-menubar` (base commit `d8d11f6` on `main`: feature documen
 | T4 | `3764fc9` feat: add popover device list ui with actions and bulk controls | delegated (writer) | `tsc && vite build` green. Test-first exception: no JS test runner in scope; UI checked by type-check/build. |
 | T5 | (this commit) | delegated (writer) | `cargo test` 19 passed / 2 ignored; `cargo clippy -- -D warnings` clean; `cargo fmt --check` clean; `pnpm build` green; `pnpm tauri build --debug` produced `Emulator Bar.app` + `.dmg`; bundled app ran 5 s without errors and System Events reports `background only = true` (no Dock icon). |
 | T6 | `867168d` feat: add launch at login toggle to tray menu | delegated (writer) | `cargo test` 19 passed / 2 ignored; `cargo clippy -- -D warnings` clean; `cargo fmt --check` clean. Test-first exception: tray menu wiring + OS LaunchAgent registration has no runnable deterministic test; toggle deliberately not exercised on this machine (would register a LaunchAgent for the debug binary). |
+| T7 | (this commit) feat: replace default icons with split phone design | delegated (writer) | SVGs rasterized with `@resvg/resvg-js` (scratch install, no repo dep); `pnpm tauri icon` regenerated icns/ico/PNGs (generated android/ios folders removed; new `64x64.png` kept); tray.png 44x44 black-on-transparent, `icon_as_template(true)` already set; 1024 and tray renders inspected visually, corner alpha 0; `cargo build` + `cargo clippy -- -D warnings` clean after forced rebuild. Test-first exception: asset swap, no runnable behavior test. |
 
 Not verified: tray click/popover positioning and hide-on-blur by hand (needs interactive GUI); per-action behavior on real devices beyond list + screenshot.
 
