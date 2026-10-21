@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Menu-bar controller for Android emulators and iOS simulators"
 authors = ["Ale Diaz"]
 edition = "2024"
+license = "MIT"
 
 [lib]
 # The `_lib` suffix avoids a name clash between the lib and bin targets on Windows.

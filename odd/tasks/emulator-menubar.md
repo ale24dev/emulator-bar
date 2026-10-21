@@ -32,6 +32,7 @@ ask-on-risk. Forecast: ~1200 authored lines (exceeds 400 → chain strategy ques
 - [x] T5 Verification: cargo test, cargo clippy, pnpm build, tauri build (debug) smoke. Route: delegated.
 - [x] T6 Launch at login: `tauri-plugin-autostart` (LaunchAgent) with a "Launch at login" check item in the tray menu above Quit; default off; README note. Route: delegated (writer).
 - [x] T7 App + tray icons: replace default Tauri icons with the "Split" design (phone halved, Android green / Apple graphite); SVG sources in `src-tauri/icons/source/`; tray stays a template image. Route: delegated (writer).
+- [ ] T8 Release v0.1.0 + Homebrew distribution: `bundle.targets = ["app"]` (DMG fails on this hdiutil), MIT LICENSE, README install/Gatekeeper notes; publish `ale24dev/emulator-bar` (release zip) and `ale24dev/homebrew-tap` (`Casks/emulator-bar.rb`); verify `brew install --cask`. Route: delegated (writer, remote authorized for ale24dev only).
 
 ## Acceptance criteria
 - Tray icon appears; clicking toggles popover; no Dock icon.
