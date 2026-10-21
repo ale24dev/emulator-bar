@@ -30,6 +30,7 @@ ask-on-risk. Forecast: ~1200 authored lines (exceeds 400 → chain strategy ques
 - [x] T3 Rust actions: boot, shutdown, open URL, install, screenshot, erase, bulk actions, exposed as Tauri commands. Route: delegated.
 - [x] T4 Frontend: device list grouped by platform, status badges, per-device actions, deep link input, file picker for install, bulk actions, refresh/polling. Route: delegated.
 - [x] T5 Verification: cargo test, cargo clippy, pnpm build, tauri build (debug) smoke. Route: delegated.
+- [x] T6 Launch at login: `tauri-plugin-autostart` (LaunchAgent) with a "Launch at login" check item in the tray menu above Quit; default off; README note. Route: delegated (writer).
 
 ## Acceptance criteria
 - Tray icon appears; clicking toggles popover; no Dock icon.
@@ -52,6 +53,7 @@ Branch `feat/emulator-menubar` (base commit `d8d11f6` on `main`: feature documen
 | T3 | `e4942b7` feat: add device actions and bulk tauri commands | delegated (writer) | RED: 4 helper tests failed; GREEN: 19/19. Ignored smoke: screenshot of booted Pixel 10a (364 KB PNG, temp dir). Boot/shutdown/erase/install/openurl not exercised against real devices (destructive or state-changing). |
 | T4 | `3764fc9` feat: add popover device list ui with actions and bulk controls | delegated (writer) | `tsc && vite build` green. Test-first exception: no JS test runner in scope; UI checked by type-check/build. |
 | T5 | (this commit) | delegated (writer) | `cargo test` 19 passed / 2 ignored; `cargo clippy -- -D warnings` clean; `cargo fmt --check` clean; `pnpm build` green; `pnpm tauri build --debug` produced `Emulator Bar.app` + `.dmg`; bundled app ran 5 s without errors and System Events reports `background only = true` (no Dock icon). |
+| T6 | (pending) feat: add launch at login toggle to tray menu | delegated (writer) | `cargo test` 19 passed / 2 ignored; `cargo clippy -- -D warnings` clean; `cargo fmt --check` clean. Test-first exception: tray menu wiring + OS LaunchAgent registration has no runnable deterministic test; toggle deliberately not exercised on this machine (would register a LaunchAgent for the debug binary). |
 
 Not verified: tray click/popover positioning and hide-on-blur by hand (needs interactive GUI); per-action behavior on real devices beyond list + screenshot.
 
@@ -62,6 +64,7 @@ Not verified: tray click/popover positioning and hide-on-blur by hand (needs int
 - Android wipe uses `emulator -avd <name> -wipe-data`, which cold boots the emulator.
 - `set_hide_on_blur` command keeps the popover open while the native file dialog has focus.
 - `am start` failures are detected from stdout (`Error...`) because adb exits 0.
+- Launch at login is driven from Rust only (`ManagerExt::autolaunch()`), so no `autostart:*` capability permission is needed; after each toggle the check mark is resynced from `is_enabled()`.
 
 ## Next step
 Manual GUI check with `pnpm tauri dev` (tray toggle, actions on a booted device). Delivery (push/PR) is the user's decision; the branch exceeds ~400 lines, so the chain strategy question (ask-on-risk) is still pending before any PR.

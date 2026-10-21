@@ -20,7 +20,15 @@ pnpm tauri build        # release bundle (.app / .dmg)
 ```
 
 The app has no Dock icon. Left-click the tray icon to toggle the popover;
-right-click it for the Quit menu.
+right-click it for the menu (Launch at login, Quit).
+
+### Launch at login
+
+"Launch at login" in the tray menu registers a LaunchAgent
+(`~/Library/LaunchAgents`) that points to the running executable. It is off by
+default. Do not enable it from `pnpm tauri dev`: the agent would point to the
+debug binary. Build the app (`pnpm tauri build`), install `Emulator Bar.app` to
+`/Applications`, launch it from there, and enable it from the tray menu.
 
 ## Test
 
