@@ -5,6 +5,11 @@ use serde::Deserialize;
 use std::collections::HashMap;
 use std::path::Path;
 
+/// Apps that display booted simulators, in preference order:
+/// Simulator.app (Xcode <= 26) and DeviceHub.app (Xcode 27+).
+const SIMULATOR_VIEWER_BUNDLE_IDS: [&str; 2] =
+    ["com.apple.iphonesimulator", "com.apple.dt.Devices"];
+
 #[derive(Deserialize)]
 struct SimctlList {
     devices: HashMap<String, Vec<SimctlDevice>>,
@@ -120,10 +125,18 @@ impl EmulatorProvider for IosProvider {
             Err(e) if e.contains("current state: Booted") => {}
             Err(e) => return Err(e),
         }
-        // `simctl boot` is headless; bring up the Simulator window.
-        process::run(Path::new("/usr/bin/open"), &["-a", "Simulator"])
-            .await
-            .map(drop)
+        // `simctl boot` is headless; bring up the device window. Xcode 27 replaced
+        // Simulator.app with DeviceHub.app, so try both bundle ids. The device is
+        // already booted at this point, so a missing viewer is not an error.
+        for bundle_id in SIMULATOR_VIEWER_BUNDLE_IDS {
+            if process::run(Path::new("/usr/bin/open"), &["-b", bundle_id])
+                .await
+                .is_ok()
+            {
+                break;
+            }
+        }
+        Ok(())
     }
 
     async fn shutdown(&self, udid: &str) -> Result<(), String> {
