@@ -7,6 +7,10 @@ bulk actions across every booted device.
 
 Built with Tauri v2 + React + TypeScript.
 
+<p align="center">
+  <img src="docs/screenshot.png" alt="Emulator Bar popover listing iOS simulators with Boot actions" width="370">
+</p>
+
 ## Install
 
 ```sh
