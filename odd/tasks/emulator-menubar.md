@@ -32,7 +32,7 @@ ask-on-risk. Forecast: ~1200 authored lines (exceeds 400 → chain strategy ques
 - [x] T5 Verification: cargo test, cargo clippy, pnpm build, tauri build (debug) smoke. Route: delegated.
 - [x] T6 Launch at login: `tauri-plugin-autostart` (LaunchAgent) with a "Launch at login" check item in the tray menu above Quit; default off; README note. Route: delegated (writer).
 - [x] T7 App + tray icons: replace default Tauri icons with the "Split" design (phone halved, Android green / Apple graphite); SVG sources in `src-tauri/icons/source/`; tray stays a template image. Route: delegated (writer).
-- [ ] T8 Release v0.1.0 + Homebrew distribution: `bundle.targets = ["app"]` (DMG fails on this hdiutil), MIT LICENSE, README install/Gatekeeper notes; publish `ale24dev/emulator-bar` (release zip) and `ale24dev/homebrew-tap` (`Casks/emulator-bar.rb`); verify `brew install --cask`. Route: delegated (writer, remote authorized for ale24dev only).
+- [x] T8 Release v0.1.0 + Homebrew distribution: `bundle.targets = ["app"]` (DMG fails on this hdiutil), MIT LICENSE, README install/Gatekeeper notes; publish `ale24dev/emulator-bar` (release zip) and `ale24dev/homebrew-tap` (`Casks/emulator-bar.rb`); verify `brew install --cask`. Route: delegated (writer, remote authorized for ale24dev only).
 
 ## Acceptance criteria
 - Tray icon appears; clicking toggles popover; no Dock icon.
@@ -57,6 +57,7 @@ Branch `feat/emulator-menubar` (base commit `d8d11f6` on `main`: feature documen
 | T5 | (this commit) | delegated (writer) | `cargo test` 19 passed / 2 ignored; `cargo clippy -- -D warnings` clean; `cargo fmt --check` clean; `pnpm build` green; `pnpm tauri build --debug` produced `Emulator Bar.app` + `.dmg`; bundled app ran 5 s without errors and System Events reports `background only = true` (no Dock icon). |
 | T6 | `867168d` feat: add launch at login toggle to tray menu | delegated (writer) | `cargo test` 19 passed / 2 ignored; `cargo clippy -- -D warnings` clean; `cargo fmt --check` clean. Test-first exception: tray menu wiring + OS LaunchAgent registration has no runnable deterministic test; toggle deliberately not exercised on this machine (would register a LaunchAgent for the debug binary). |
 | T7 | (this commit) feat: replace default icons with split phone design | delegated (writer) | SVGs rasterized with `@resvg/resvg-js` (scratch install, no repo dep); `pnpm tauri icon` regenerated icns/ico/PNGs (generated android/ios folders removed; new `64x64.png` kept); tray.png 44x44 black-on-transparent, `icon_as_template(true)` already set; 1024 and tray renders inspected visually, corner alpha 0; `cargo build` + `cargo clippy -- -D warnings` clean after forced rebuild. Test-first exception: asset swap, no runnable behavior test. |
+| T8 | `55204ac` chore: prepare v0.1.0 release and homebrew distribution | delegated (writer, remote: ale24dev only) | `pnpm tauri build` produced `Emulator Bar.app` (4.64 MiB, arm64, minos 11.0, LSMinimumSystemVersion 10.13). Zip sha256 `807033b2...e705b` matches the downloaded release asset. Repo https://github.com/ale24dev/emulator-bar (main fast-forwarded, tag `v0.1.0`), release https://github.com/ale24dev/emulator-bar/releases/tag/v0.1.0, tap https://github.com/ale24dev/homebrew-tap (`5fd3500` feat: add emulator-bar cask). `brew style --cask`: no offenses (after autocorrect to `depends_on :macos`, Big Sur floor is below Homebrew's minimum). `brew audit --cask`: clean; `--new --online` fails only on notability and unsigned signature (homebrew/cask-only policies). `brew install --cask ale24dev/tap/emulator-bar` moved the app to /Applications; after `xattr -dr com.apple.quarantine` the process runs. Test-first exception: packaging/distribution, no runnable behavior test. |
 
 Not verified: tray click/popover positioning and hide-on-blur by hand (needs interactive GUI); per-action behavior on real devices beyond list + screenshot.
 
@@ -70,4 +71,6 @@ Not verified: tray click/popover positioning and hide-on-blur by hand (needs int
 - Launch at login is driven from Rust only (`ManagerExt::autolaunch()`), so no `autostart:*` capability permission is needed; after each toggle the check mark is resynced from `is_enabled()`.
 
 ## Next step
-Manual GUI check with `pnpm tauri dev` (tray toggle, actions on a booted device). Delivery (push/PR) is the user's decision; the branch exceeds ~400 lines, so the chain strategy question (ask-on-risk) is still pending before any PR.
+v0.1.0 is published via `brew install --cask ale24dev/tap/emulator-bar`. Future releases: bump version in tauri.conf.json/Cargo.toml/package.json, rebuild, zip, new release, update cask `version` + `sha256`.
+
+Previous: Manual GUI check with `pnpm tauri dev` (tray toggle, actions on a booted device). Delivery (push/PR) is the user's decision; the branch exceeds ~400 lines, so the chain strategy question (ask-on-risk) is still pending before any PR.
